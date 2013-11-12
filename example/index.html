@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>City Trending</title>
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script src="../lib/jquery.base64.min.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+<script src="../src/lftrends.js"></script>
+</head>
+<body>
+	<div id="container"></div>
+	
+	<script>
+	
+	var opts = {
+			initialFrom: "1d",
+			
+			rules: [
+				{
+					name: "#sfo",
+					site: "333682",
+					articleId: "sn-1383788773025",
+					rule: "2"
+				},
+				{
+					name: "#nyc",
+					site: "333682",
+					articleId: "sn-1383799726145",
+					rule: "2"
+				},
+				{
+					name: "#lax",
+					site: "333682",
+					articleId: "sn-1383799829485",
+					rule: "2"
+				},
+				{
+					name: "#ord",
+					site: "333682",
+					articleId: "sn-1383884473872",
+					rule: "2"
+				}
+			] 
+	};
+	var trends = new lftrends(opts);
+	</script>
+</body>
+</html>
