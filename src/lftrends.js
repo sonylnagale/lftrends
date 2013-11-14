@@ -199,6 +199,12 @@ lftrends.prototype._draw = function() {
 		series.push(sery);
 	}
 	
+	Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
+	
 	this.chart = new Highcharts.Chart({
         chart: {
             renderTo: this.opts.container,
