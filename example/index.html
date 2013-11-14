@@ -14,8 +14,11 @@
 	
 	<script>
 	
+	// this data structure is actually pretty dumb as it causes correlation problems down the flow
+	// when data is returned from the API
+	// @todo make it not dumb (its own class?)
 	var opts = {
-			initialFrom: "1d",
+			initialFrom: "-1h",
 			
 			rules: [
 				{
@@ -40,6 +43,12 @@
 					name: "#ord",
 					site: "333682",
 					articleId: "sn-1383884473872",
+					rule: "2"
+				},
+				{
+					name: "Bengals",
+					site: "346298",
+					articleId: "espn-1383005962218",
 					rule: "2"
 				}
 			] 

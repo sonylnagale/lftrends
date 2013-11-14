@@ -35,9 +35,10 @@ var lftrends = function(opts) {
 	
 	this.opts = $.extend(defaults,opts);
 
-	var updateCount = 0, query = this._constructQuery(), chart;
+	this.updateCount = 0;
+	this.chart;
 
-	this._constructResource();
+	this._draw();
 	
 };
 
@@ -73,7 +74,6 @@ lftrends.prototype._constructResource = function() {
 	this.opts.resource = this.opts.resource.replace('{network}',this.opts.network);
 	this.opts.resource = this.opts.resource.replace('{version}',this.opts.version);
 	this.opts.resource = this.opts.resource.replace('{query}',this._constructQuery());
-	console.log(this.opts.resource);
 };
 
 /**
@@ -97,8 +97,9 @@ lftrends.prototype._request = function() {
 	
 	$.ajax({
         url: url,
-        success: function(data) {
-        	data = this._processData(data);
+        jsonp: true,
+        success: $.proxy(function(data) {
+        	this._constructSeries(this._processData(data));
         	
         	
         	/*
@@ -110,7 +111,7 @@ lftrends.prototype._request = function() {
             
             // call it again after one second
             setTimeout(requestData, 1000);    */
-        },
+        },this),
         cache: false
     });
 };
@@ -119,6 +120,7 @@ lftrends.prototype._request = function() {
  * @private
  * Preprocesses data returned from Social Counter before being used for the chart
  * @param {Object} data Data from _request()
+ * @return {Object} collections All the, erm, data?
  */ 
 lftrends.prototype._processData = function(data) {
 	
@@ -127,7 +129,100 @@ lftrends.prototype._processData = function(data) {
 		return;
 	}
 	
+	var collections = {};
 	
+	// get them all together into one object
+	for (var site in data.data) {
+		if (data.data.hasOwnProperty(site)) {			
+			collections = $.extend(collections,data.data[site]);
+		}
+	}
 	
+	// this feels really stupid and expensive. Need to find a better way
+	// I probably want to change the structure of the rules array to an object or something
+	for (var i = 0; i < this.opts.rules.length; ++i) {
+		collections[this.opts.rules[i].articleId].title = this.opts.rules[i].name;
+	}
 	
+	return collections;
+};
+
+/**
+ * @private
+ * Take the data after _processData() and format it into a nice series that Highcharts likes
+ * @param {Object} data Data from _processData()
+ */
+lftrends.prototype._constructSeries = function(data) {
+	for (var i = 0; i < this.chart.series.length; ++i) {
+		
+		// ok, let's do even MORE stupid iterating *cries*
+		// I'm starting to doubt my sanity
+		for (var collection in data) {
+			if (this.chart.series[i].name == data[collection].title) {
+				var match = collection;
+			} 
+		}
+		var datapoints = data[match]["2"]; // hardcode "2" for now
+
+		// this loop we actually need. we're going to toss out all the 0 datapoints
+		for (var j = 0; j < datapoints.length; ++j) {
+			if (datapoints[j][0] != 0) {
+				var point = {
+					x: new Date(datapoints[j][1] * 1000), // take our unix timestamp and make a pretty date
+					y: datapoints[j][0]
+				};
+				this.chart.series[i].addPoint(point, false, false);
+			}
+		}
+	}
+	
+	// now, add the points. We hope.
+	this.chart.redraw();
+	this.updateCount++;
+};
+
+
+/**
+ * @private
+ * Initial draw of the chart
+ */
+lftrends.prototype._draw = function() {
+	this._constructResource();
+
+	// this also seems like a bad idea
+	var series = [];
+	for (var i = 0; i < this.opts.rules.length; ++i) {
+		var sery = { // yes I know sery isn't a word, hush.
+			name: this.opts.rules[i].name,
+			data: []
+		};
+		series.push(sery);
+	}
+	
+	this.chart = new Highcharts.Chart({
+        chart: {
+            renderTo: this.opts.container,
+            defaultSeriesType: 'spline',
+            events: {
+                load: this._request()
+            }
+        },
+        title: {
+            text: 'Data!'
+        },
+        xAxis: {
+            type: 'datetime',
+            tickPixelInterval: 150,
+            maxZoom: 20 * 1000
+        },
+        yAxis: {
+            minPadding: 0.2,
+            maxPadding: 0.2,
+            title: {
+                text: 'Value',
+                margin: 80
+            }
+        },
+        series: series
+    });        
 };
