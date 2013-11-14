@@ -22,7 +22,7 @@ var lftrends = function(opts) {
 		version: "3.0",
 		resource: "http://bootstrap.{network}/api/v{version}/stats.collections.curate/{query}.json",
 		initialFrom: null,
-		subsequentFrom: "-5s",
+		subsequentFrom: "-15s",
 		initialUntil: null,
 		subsequentUntil: null,
 		rules: [],
@@ -86,31 +86,22 @@ lftrends.prototype._request = function() {
 		from = (this.updateCount == 0) ? this.opts.initialFrom : this.opts.subsequentFrom,
 		until = (this.updateCount == 0) ? this.opts.initialUntil : this.opts.subsequentUntil;	
 	
+	
 	if (from != null) {
-		url += delimeter + 'from=' + this.opts.initialFrom;
+		url += delimeter + 'from=' + from;
 		delimeter = '&';
 	}
 	
 	if (until != null) {
-		url += delimeter + 'until' + this.opts.initialUntil;
+		url += delimeter + 'until' + until;
 	}
-	
+		
 	$.ajax({
         url: url,
         jsonp: true,
         success: $.proxy(function(data) {
         	this._constructSeries(this._processData(data));
-        	
-        	
-        	/*
-            var series = this.chart.series[0],
-                shift = series.data.length > 100; // shift if the series is longer than 20
-
-            // add the point
-            chart.series[0].addPoint(point, true, shift);
-            
-            // call it again after one second
-            setTimeout(requestData, 1000);    */
+//        	setTimeout($.proxy(function() { this._request();},this), this.opts.interval);
         },this),
         cache: false
     });
@@ -165,6 +156,7 @@ lftrends.prototype._constructSeries = function(data) {
 		var datapoints = data[match]["2"]; // hardcode "2" for now
 
 		// this loop we actually need. we're going to toss out all the 0 datapoints
+		var processedDataPoints = [];
 		for (var j = 0; j < datapoints.length; ++j) {
 			if (datapoints[j][0] != 0) {
 				var point = {
@@ -172,7 +164,22 @@ lftrends.prototype._constructSeries = function(data) {
 					y: datapoints[j][0]
 				};
 				this.chart.series[i].addPoint(point, false, false);
+				processedDataPoints.push(point);
 			}
+		}
+
+		// now, if there was no new data, let's just add a continuity line
+		if (processedDataPoints.length == 0) {
+			var currentseries = this.chart.series[i];
+
+			var point = {
+				x: new Date(),
+				y: currentseries.data[currentseries.data.length - 1].y,
+				marker: {
+					enabled: false
+				}
+			};
+			currentseries.addPoint(point, false, false);
 		}
 	}
 	
@@ -211,6 +218,10 @@ lftrends.prototype._draw = function() {
             defaultSeriesType: 'spline',
             events: {
                 load: this._request()
+            },
+            animation: {
+            	duration: this.opts.interval,
+            	easing: 'linear'
             }
         },
         title: {
