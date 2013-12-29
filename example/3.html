@@ -1,0 +1,254 @@
+<html>
+	<head>
+		<title>Animated Sparkline using SVG Path and d3.js</title>
+		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" charset="utf-8"></script>
+		
+		<script src="../src/lftrends.js"></script>
+		
+		<style>
+			/* tell the SVG path to be a thin blue line without any area fill */
+			path {
+				stroke: steelblue;
+				stroke-width: 1;
+				fill: none;
+			}
+			
+			.axis path,
+			.axis line {
+			  fill: none;
+				stroke: #AFBABF;
+				shape-rendering: crispEdges;
+				}
+			.axis text {
+				font-family:  SourceSansPro-Bold;
+				font-size: 14px;
+				fill: #AFBABF;
+				}
+			
+			.x.axis path {
+			  display: none;
+			}
+			.y.axis path{
+			  display: none;
+			  }
+			
+			.line {
+			  fill: none;
+			  stroke: steelblue;
+			  stroke-linejoin: round;
+			  stroke-linecap:round;
+			}
+				
+		</style>
+	</head>
+	<body>
+
+	<p>
+		<div id="graph1" class="aGraph" style="width:1000px; height:500px;"></div>
+	</p>
+
+	<script>
+	
+	window.data = [];
+	
+	function maxValue(arr) {
+		var max = 0;
+		for (var i = 0 ; i < arr.length; ++i) {
+			if (arr[i].value > max) {
+				max = arr[i].value
+			}
+		}
+		
+		return max;
+	}	
+
+	var parseDate = d3.time.format("%m/%d/%y").parse;
+
+	function displayGraphExample(id, width, height, interpolation, animate, updateDelay, transitionDelay, data) {
+		// create an SVG element inside the #graph div that fills 100% of the div
+		//var graph = d3.select(id).append("svg:svg").attr("width", "100%").attr("height", "100%");
+		
+		var margin = {top: 50, right: 50, bottom: 50, left: 50},
+		    width = width - margin.left - margin.right,
+		    height = height - margin.top - margin.bottom;
+			
+		//create an SVG
+		var graph = d3.select(id).append("svg")
+		    .attr("width", width + margin.left + margin.right)
+		    .attr("height", height + margin.top + margin.bottom)
+		    .append("g")
+		    	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");  
+
+		// create a simple data array that we'll plot with a line (this array represents only the Y values, X will just be the index location)
+		//var data = [3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9, 3, 6, 3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9, 3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 9];
+
+		// X scale will fit values from 0-10 within pixels 0-100
+		//console.log(data);
+		
+		var x = d3.time.scale().domain([
+		                          	    0,
+		                        	    data.length
+		                        		])
+		                        		.range([-5, width]); // starting point is -5 so the first value doesn't show and slides off the edge as part of the transition
+
+      	var linedata = d3.time.scale().domain().map(function(name) {
+       				return {
+   					        values: data.map(function(d) {
+   							return { date: parseDate(d.date.toString()), value: d.value};
+         						})
+       				};
+     	});                        		
+   		var time = d3.time.scale()
+	   		.domain([
+	   	    d3.min(linedata, function(c) { return d3.min(c.values, function(v) { return v.date; }); }),
+	   	    d3.max(linedata, function(c) { return d3.max(c.values, function(v) { return v.date; }); })
+	   		])
+	   		.range([0, width]);
+   		
+		// Y scale will fit values from 0-10 within pixels 0-100
+		var y = d3.scale.linear().domain([ 0, maxValue(data)]).range([height,0]);
+
+		var xscaleticks = 20;
+		
+		var dates = function(data) {
+			var dates = [];
+			for (var i = 0; i < data.length; ++i) {
+				dates.push(data[i].date);
+			}
+			
+			return dates;
+		};
+
+		console.log(dates(data));
+		
+		//create and draw the x axis
+		var xAxis = d3.svg.axis()
+	    	.scale(time)
+		    .orient("bottom")
+	    	.tickPadding(8)
+		    .ticks(xscaleticks)
+			.tickValues(dates(data))
+			.tickFormat(d3.time.format("%S"));
+	    
+		graph.append("svg:g")
+		    .attr("class", "x axis");
+			
+		//create and draw the y axis                  
+		var yAxis = d3.svg.axis()
+	    	.scale(y)
+		    .orient("left")
+	    	.tickSize(0-width)
+		    .tickPadding(8);
+	    
+		graph.append("svg:g")
+	    	.attr("class", "y axis");
+		
+		// create a line object that represents the SVN line we're creating
+		var line = d3.svg.line()
+			// assign the X function to plot our line as we wish
+			.x(function(d,i) { 
+				// verbose logging to show what's actually being done
+				//console.log('Plotting X value for data point: ' + d.date + ' using index: ' + i + ' to be at: ' + x(i) + ' using our xScale.');
+				// return the X coordinate where we want to plot this datapoint
+				return x(i); 
+			})
+			.y(function(d) { 
+				// verbose logging to show what's actually being done
+				//console.log('Plotting Y value for data point: ' + d.value + ' to be at: ' + y(d.value) + " using our yScale.");
+				// return the Y coordinate where we want to plot this datapoint
+				return y(d.value); 
+			})
+			.interpolate(interpolation)
+			// display the line by appending an svg:path element with the data line we created above
+			graph.append("svg:path").attr("d", line(data));
+			// or it can be done like this
+			//graph.selectAll("path").data([data]).enter().append("svg:path").attr("d", line);
+			
+			
+
+			 	 // update the axes,   
+		    d3.transition(graph).select(".y.axis")
+		    	.call(yAxis);   
+		          
+		    d3.transition(graph).select(".x.axis")
+		    	.attr("transform", "translate(0," + height + ")")
+		        .call(xAxis);
+
+			
+			function redrawWithoutAnimation() {
+				// static update without animation
+				graph.selectAll("path")
+					.data([data]) // set the new data
+					.attr("d", line); // apply the new data values
+			}
+			
+			/* setInterval(function() {
+			   var v = data.shift(); // remove the first element of the array
+			   data.push(v); // add a new element to the array (we're just taking the number we just shifted off the front and appending to the end)
+			   if(animate) {
+				   redrawWithAnimation();
+			   } else {
+			   	   redrawWithoutAnimation();
+			   }
+			}, updateDelay); */
+		}
+		
+	
+	function redrawWithAnimation(data) {
+		
+		// update the axes,   
+	    d3.transition(svg).select(".y.axis")
+	    	.call(yAxis);   
+	          
+	    d3.transition(svg).select(".x.axis")
+	    	.attr("transform", "translate(0," + height + ")")
+	        .call(xAxis);
+	    
+		// update with animation
+		/* graph.selectAll("path")
+			.data([window.data.concat(data)]) // set the new data
+			.attr("transform", "translate(" + x(1) + ")") // set the transform to the right by x(1) pixels (6 for the scale we've set) to hide the new value
+			.attr("d", line) // apply the new data values ... but the new value is hidden at this point off the right of the canvas
+			.transition() // start a transition to bring the new value into view
+			.ease("linear")
+			.duration(transitionDelay) // for this demo we want a continual slide so set this to the same as the setInterval amount below
+			.attr("transform", "translate(" + x(0) + ")"); // animate a slide to the left back to x(0) pixels to reveal the new value
+	 */		
+			/* thanks to 'barrym' for examples of transform: https://gist.github.com/1137131 */
+	}
+	
+		var opts = {
+				
+				rules: [
+					{
+						name: "#nyc",
+						site: "303990",
+						articleId: "sn-1387579998541",
+						rule: "2"
+					}/* ,
+					{
+						name: "#nyc",
+						site: "333682",
+						articleId: "sn-1383799726145",
+						rule: "2"
+					},
+					{
+						name: "#lax",
+						site: "333682",
+						articleId: "sn-1383799829485",
+						rule: "2"
+					},
+					{
+						name: "#ord",
+						site: "333682",
+						articleId: "sn-1383884473872",
+						rule: "2"
+					} */
+				] 
+		};
+		var trends = new lftrends(opts);
+	</script>
+
+	</body>
+</html>
