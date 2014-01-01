@@ -21,7 +21,7 @@ var lftrends = function(opts) {
 		network: "client-solutions-uat.fyre.co",
 		version: "3.0",
 		resource: "http://bootstrap.{network}/api/v{version}/stats.collections.curate/{query}.json",
-		initialFrom: "-1h",
+		initialFrom: "-5min",
 		subsequentFrom: "-10s",
 		initialUntil: null,
 		subsequentUntil: null,
@@ -101,7 +101,7 @@ lftrends.prototype._request = function() {
         jsonp: true,
         success: $.proxy(function(data) {
         	this._constructSeries(this._processData(data));
-        	//setTimeout($.proxy(function() { this._request();},this), this.opts.interval);
+        	setTimeout($.proxy(function() { this._request();},this), this.opts.interval);
         },this),
         cache: false
     });
@@ -158,9 +158,9 @@ lftrends.prototype._processData = function(data) {
  */
 lftrends.prototype._constructSeries = function(data) {
 	if (this.updateCount == 1) {
-		displayGraphExample("#graph1", 1000, 500, "linear", true, 10000, 10000, data);
+		displayGraphExample("#graph1", 1000, 500, "linear", true, this.opts.interval, this.opts.interval, data);
 	} else {
-		redrawWithAnimation(data);
+		redrawWithAnimation("#graph1", 1000, 500, "linear", true, this.opts.interval, this.opts.interval, data);
 	}
 //	for (var i = 0; i < this.chart.series.length; ++i) {
 //		
