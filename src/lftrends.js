@@ -53,12 +53,10 @@ lftrends.prototype._constructQuery = function() {
 	var query = '';
 	var delimeter = (this.opts.type == 'OR') ? '|' : ',';
 	
-	for (var i = 0; i < this.opts.rules.length; ++i) {
-		var rule = this.opts.rules[i];
+	for (var rule in this.opts.rules) {
+		var rule = this.opts.rules[rule];
 		query += rule.site + ':' + rule.articleId + ';' + rule.rule;
-		if (i < this.opts.rules.length - 1) {
-			query += delimeter;
-		}
+		query += delimeter;
 	}
 	
 	query = btoa(query);
@@ -120,25 +118,48 @@ lftrends.prototype._processData = function(data) {
 		return;
 	}
 	
-	var collections = [];
-	
-	// get them all together into one object
+//	// get them all together into one object
 //	for (var site in data.data) {
 //		if (data.data.hasOwnProperty(site)) {			
 //			collections = $.extend(collections,data.data[site]);
 //		}
 //	}
 
-	// just use one for now
-	var oneseries = data.data[this.opts.rules[0].site][this.opts.rules[0].articleId]["2"];
-
-	for (var item in oneseries) {
-		collections.push({
-			'date': new Date(oneseries[item][1] * 1000),//.toLocaleString(),
-			'value': oneseries[item][0]
-		});
-	}
+	var siteObjects = []; // let's pretend we're querying more than one site
 	
+	for (var site in data.data) {
+		siteObjects.push(data.data[site]);
+	}
+
+	var massagedData = []; // now let's get all the collections into one object to pass to d3
+
+	var collectionData = [];
+
+	for (var site in siteObjects) {
+		
+		for (var collection in siteObjects[site]) {
+			//console.log(collection);
+			//collections[collection] = siteObjects[site][collection]["2"]; 
+			collectionData.push({'collection':collection,'data':siteObjects[site][collection]["2"]}); // assume everything is twitter now (rule 2)
+		}
+	}
+
+	for (var i = 0; i < collectionData[0]['data'].length; ++i) {
+		var datum = {};
+		datum.date = new Date(collectionData[0]['data'][i][1] * 1000);
+		for (var j = 0; j < Object.keys(collectionData).length; ++j ) {
+			datum[this.opts.rules[collectionData[j]['collection']].name] = collectionData[j]['data'][i][0];
+		}
+		massagedData.push(datum);
+	}
+
+//	
+//	for (var collection in collections) {
+//		
+//	}
+//	
+//	console.log(datapoints);
+
 //	// this feels really stupid and expensive. Need to find a better way
 //	// I probably want to change the structure of the rules array to an object or something
 //	for (var i = 0; i < this.opts.rules.length; ++i) {
@@ -147,8 +168,7 @@ lftrends.prototype._processData = function(data) {
 //	
 	
 	++this.updateCount;
-	
-	return collections;
+	return massagedData;
 };
 
 /**
