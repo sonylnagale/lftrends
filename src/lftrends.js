@@ -183,8 +183,7 @@ lftrends.prototype._constructSeries = function(data) {
 //	} else {
 //		redrawWithAnimation("#graph1", 1000, 500, "linear", true, this.opts.interval, this.opts.interval, data);
 //	}
-
-	draw(data);
+	draw(data, this.updateCount);
 	
 //	for (var i = 0; i < this.chart.series.length; ++i) {
 //		

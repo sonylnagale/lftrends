@@ -32,6 +32,21 @@ body {
 <script src="../src/lftrends.js"></script>
 <script>
 
+var LF = LF || {};
+LF.data = [];
+
+
+function maxValue(arr) {
+	var max = 0;
+	for (var i = 0 ; i < arr.length; ++i) {
+		if (arr[i].value > max) {
+			max = arr[i].value
+		}
+	}
+	
+	return max;
+}	
+
 var margin = {top: 20, right: 80, bottom: 30, left: 50},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
@@ -66,61 +81,130 @@ var svg = d3.select("body").append("svg")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 //d3.tsv("data.tsv", function(error, data) {
-function draw(data) {
-	console.log(data);
-  color.domain(d3.keys(data[0]).filter(function(key) { return key !== "date"; }));
+function draw(data, count) {
+/*     console.log(data);
+ */    
+	LF.data.shift();
 
-  data.forEach(function(d) {
-    d.date = parseDate(d.date.toLocaleTimeString());
-  });
+	data = LF.data.concat(data);
+		
+	LF.data = data;
 
-  var cities = color.domain().map(function(name) {
-    return {
-      name: name,
-      values: data.map(function(d) {
-        return {date: d.date, temperature: +d[name]};
-      })
-    };
-  });
+	LF.x = d3.time.scale().domain([
+	               			    0,
+	               			   LF.data.length
+	               			])
+	               			.range([-5, width]); // starting point is -5 so the first value doesn't show and slides off the edge as part of the transition
+	               			
 
-  x.domain(d3.extent(data, function(d) { return d.date; }));
+	               			
+	if (count == 1) {
+			
+	  color.domain(d3.keys(data[0]).filter(function(key) { return key !== "date"; }));
+	
+	// use this to parse date
+	 /*  data.forEach(function(d) {
+	    d.date = d.date;
+	  });
+	 */
+	  var cities = color.domain().map(function(name) {
+	    return {
+	      name: name,
+	      values: data.map(function(d) {
+	        return {date: d.date, temperature: +d[name]};
+	      })
+	    };
+	  });
+	
+	  x.domain(d3.extent(data, function(d) { return d.date; }));
+	
+	  y.domain([
+	    d3.min(cities, function(c) { return d3.min(c.values, function(v) { return v.temperature; }); }),
+	    d3.max(cities, function(c) { return d3.max(c.values, function(v) { return v.temperature; }); })
+	  ]);
+	
+	  svg.append("g")
+	      .attr("class", "x axis")
+	      .attr("transform", "translate(0," + height + ")")
+	      .call(xAxis);
+	
+	  svg.append("g")
+	      .attr("class", "y axis")
+	      .call(yAxis)
+	    .append("text")
+	      .attr("transform", "rotate(-90)")
+	      .attr("y", 6)
+	      .attr("dy", ".71em")
+	      .style("text-anchor", "end")
+	      .text("Tweets");
+	
+	  var city = svg.selectAll(".city")
+	      .data(cities)
+	    .enter().append("g")
+	      .attr("class", "city");
+	
+	  city.append("path")
+	      .attr("class", "line")
+	      //.attr("d", function(d) { return line(d.values); })
+	      .style("stroke", function(d) { return color(d.name); });
+	
+	  if (count == 1) {
+		  city.selectAll('path')
+	      .attr("d", function(d) { return line(d.values); })
+	  }
+	  
+	  city.append("text")
+	      .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
+	      .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.temperature) + ")"; })
+	      .attr("x", 3)
+	      .attr("dy", ".35em")
+	      .text(function(d) { return d.name; });
+	} // if first run  
+  
+////////////
+// update with animation
 
-  y.domain([
-    d3.min(cities, function(c) { return d3.min(c.values, function(v) { return v.temperature; }); }),
-    d3.max(cities, function(c) { return d3.max(c.values, function(v) { return v.temperature; }); })
-  ]);
+console.log(LF.x(1), LF.data[0]);
+	
+//create a line object that represents the SVN line we're creating
+LF.line = d3.svg.line()
+	// assign the X function to plot our line as we wish
+	.x(function(d,i) { 
+		// verbose logging to show what's actually being done
+		//console.log('Plotting X value for data point: ' + d.date + ' using index: ' + i + ' to be at: ' + x(i) + ' using our xScale.');
+		// return the X coordinate where we want to plot this datapoint
+		return LF.x(i); 
+	})
+	.y(function(d) { 
+		// verbose logging to show what's actually being done
+		//console.log('Plotting Y value for data point: ' + d.value + ' to be at: ' + y(d.value) + " using our yScale.");
+		// return the Y coordinate where we want to plot this datapoint
+		return LF.y(d.value); 
+	})
+	.interpolate('basis')
+	
+	
+	LF.y = d3.scale.linear().domain([ 0, maxValue(data)]).range([height,0]);
+	LF.yAxis = d3.svg.axis()
+	    	.scale(LF.y)
+		    .orient("left")
+	    	.tickSize(0-width)
+			.tickFormat(d3.format("d"))
+		    .tickPadding(8);
 
-  svg.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(xAxis);
+	svg.selectAll(".city")
+		.data(data) // set the new data
+		.attr("transform", "translate(" + LF.x(1) + ")") // set the transform to the right by x(1) pixels (6 for the scale we've set) to hide the new value
+		//.attr("d", LF.line) // apply the new data values ... but the new value is hidden at this point off the right of the canvas
+	//      .attr("d", function(d) { return line(d.values); })
 
-  svg.append("g")
-      .attr("class", "y axis")
-      .call(yAxis)
-    .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("Tweets");
-
-  var city = svg.selectAll(".city")
-      .data(cities)
-    .enter().append("g")
-      .attr("class", "city");
-
-  city.append("path")
-      .attr("class", "line")
-      .attr("d", function(d) { return line(d.values); })
-      .style("stroke", function(d) { return color(d.name); });
-
-  city.append("text")
-      .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
-      .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.temperature) + ")"; })
-      .attr("x", 3)
-      .attr("dy", ".35em")
-      .text(function(d) { return d.name; });
+		.transition() // start a transition to bring the new value into view
+		.ease("linear")
+		.duration(10000) // for this demo we want a continual slide so set this to the same as the setInterval amount below
+		.attr("transform", "translate(" + LF.x(0) + ")"); // animate a slide to the left back to x(0) pixels to reveal the new value
+ 	
+		
+			///////////////
 //});
 };
 var opts = {
