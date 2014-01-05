@@ -64,15 +64,15 @@ var y = d3.scale.linear()
 var color = d3.scale.category10();
 
 var xAxis = d3.svg.axis()
-    .scale(x)
-    .orient("bottom");
+    //.scale(x)
+   // .orient("bottom");
 
 var yAxis = d3.svg.axis()
     .scale(y)
     .orient("left");
 
 var line = d3.svg.line()
-    .interpolate("basis")
+    .interpolate("cardinal")
     .x(function(d) { return x(d.date); })
     .y(function(d) { return y(d.tweets); });
 
@@ -84,8 +84,7 @@ var svg = d3.select("body").append("svg")
 
 //d3.tsv("data.tsv", function(error, data) {
 function draw(data, count) {
-/*     console.log(data);
- */    
+//     console.log(data);  
 	LF.data.shift();
 
 	data = LF.data.concat(data);
@@ -165,7 +164,7 @@ function draw(data, count) {
 ////////////
 // update with animation
 
-console.log(LF.x(1), data[0]);
+//console.log(LF.x(1), data[0]);
 LF.y = d3.scale.linear().domain([ 0, maxValue(data)]).range([height,0]);
 LF.yAxis = d3.svg.axis()
     	.scale(LF.y)
@@ -199,7 +198,7 @@ var line = d3.svg.line()
     .y(function(d) { return y(d.tweets); });
 */
 	
-	console.log('maxvalue',maxValue(data));
+	//console.log('maxvalue',maxValue(data));
 	
 	/*  var cities = svg.selectAll(".city")
 	 	.data(data)
@@ -225,7 +224,41 @@ var line = d3.svg.line()
 //});
 };
 var opts = {
+		/*//prod
 		
+		network: "client-solutions.fyre.co",
+		
+		rules: {
+			"sn-1383788773025": {
+				name: "#sfo",
+				site: "333682",
+				articleId: "sn-1383788773025",
+				rule: "2"
+			},
+			
+			"sn-1383799726145": {
+				name: "#nyc",
+				site: "333682",
+				articleId: "sn-1383799726145",
+				rule: "2"
+			},
+			
+			"sn-1383799829485": {
+				name: "#lax",
+				site: "333682",
+				articleId: "sn-1383799829485",
+				rule: "2"
+			},
+			"sn-1383884473872": {
+				name: "#ord",
+				site: "333682",
+				articleId: "sn-1383884473872",
+				rule: "2"
+			}
+		}*/
+		
+		
+		// UAT
 		rules: {
 			"sn-1387579998541":{
 				name: "#nyc",
