@@ -146,6 +146,7 @@ lftrends.prototype._processData = function(data) {
 
 	for (var i = 0; i < collectionData[0]['data'].length; ++i) {
 		var datum = {};
+		//datum.date = new Date(collectionData[0]['data'][i][1] * 1000);
 		datum.date = new Date(collectionData[0]['data'][i][1] * 1000);
 		for (var j = 0; j < Object.keys(collectionData).length; ++j ) {
 			datum[this.opts.rules[collectionData[j]['collection']].name] = collectionData[j]['data'][i][0];
@@ -177,11 +178,14 @@ lftrends.prototype._processData = function(data) {
  * @param {Object} data Data from _processData()
  */
 lftrends.prototype._constructSeries = function(data) {
-	if (this.updateCount == 1) {
-		displayGraphExample("#graph1", 1000, 500, "linear", true, this.opts.interval, this.opts.interval, data);
-	} else {
-		redrawWithAnimation("#graph1", 1000, 500, "linear", true, this.opts.interval, this.opts.interval, data);
-	}
+//	if (this.updateCount == 1) {
+//		displayGraphExample("#graph1", 1000, 500, "linear", true, this.opts.interval, this.opts.interval, data);
+//	} else {
+//		redrawWithAnimation("#graph1", 1000, 500, "linear", true, this.opts.interval, this.opts.interval, data);
+//	}
+
+	draw(data);
+	
 //	for (var i = 0; i < this.chart.series.length; ++i) {
 //		
 //		// ok, let's do even MORE stupid iterating *cries*
