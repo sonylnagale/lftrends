@@ -51,7 +51,8 @@ function maxValue(arr) {
 
 var margin = {top: 20, right: 80, bottom: 30, left: 50},
     width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    height = 500 - margin.top - margin.bottom,
+	padding = 30;
 
 var parseDate = d3.time.format.utc("%H:%M:%S %p").parse;
 
@@ -72,19 +73,35 @@ var yAxis = d3.svg.axis()
     .orient("left");
 
 var line = d3.svg.line()
-    .interpolate("cardinal")
+    .interpolate("monotone")
     .x(function(d) { return x(d.date); })
     .y(function(d) { return y(d.tweets); });
 
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    .attr("height", height + margin.top + margin.bottom);
 
-//d3.tsv("data.tsv", function(error, data) {
+var clip = svg.append("defs").append("svg:clipPath")
+	.attr("id", "clip")
+	.append("svg:rect")
+		.attr("id", "clip-rect")
+		.attr("x", "0")
+		.attr("y", "0")
+		.attr("width", width)
+		.attr("height", height);
+
+var chartBody = svg.append("g")
+	.attr("clip-path", "url(#clip)")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+var rect = chartBody.append('svg:rect')
+	.attr('width', width)
+	.attr('height', height)
+	.attr('fill', 'white');
+
+
 function draw(data, count) {
-//     console.log(data);  
 	LF.data.shift();
 
 	data = LF.data.concat(data);
@@ -95,7 +112,7 @@ function draw(data, count) {
 	               			    0,
 	               			   LF.data.length
 	               			])
-	               			.range([-5, width]); // starting point is -5 so the first value doesn't show and slides off the edge as part of the transition
+	               			.range([-20, width]); // starting point is -5 so the first value doesn't show and slides off the edge as part of the transition
 	               			
  color.domain(d3.keys(data[0]).filter(function(key) { return key !== "date"; }));
 
@@ -125,12 +142,12 @@ function draw(data, count) {
 			
 	 
 	
-	  svg.append("g")
+		chartBody.append("g")
 	      .attr("class", "x axis")
 	      .attr("transform", "translate(0," + height + ")")
 	      .call(xAxis);
 	
-	  svg.append("g")
+		chartBody.append("g")
 	      .attr("class", "y axis")
 	      .call(yAxis)
 	    .append("text")
@@ -140,7 +157,7 @@ function draw(data, count) {
 	      .style("text-anchor", "end")
 	      .text("Tweets");
 	
-	  var city = svg.selectAll(".city")
+	  var city = chartBody.selectAll(".city")
 	      .data(cities)
 	    .enter().append("g")
 	      .attr("class", "city");
@@ -188,7 +205,7 @@ LF.line = d3.svg.line()
 		// return the Y coordinate where we want to plot this datapoint
 		return LF.y(d.tweets); 
 	})
-	.interpolate('basis');
+	.interpolate('monotone');
 	
 	/*
 	
@@ -208,7 +225,7 @@ var line = d3.svg.line()
 			//.attr("d",LF.line);
 	 
 	 */
-	svg.selectAll("path.line")
+	 chartBody.selectAll("path.line")
 		.data(cities) // set the new data
 		.attr("transform", "translate(" + LF.x(1) + ")") // set the transform to the right by x(1) pixels (6 for the scale we've set) to hide the new value
 	    //.attr("d", LF.line)
