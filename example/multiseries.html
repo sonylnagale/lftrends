@@ -5,6 +5,7 @@
 
 body {
   font: 10px sans-serif;
+  background-color:#ccc;
 }
 
 .axis path,
@@ -23,9 +24,15 @@ body {
   stroke: steelblue;
   stroke-width: 1.5px;
 }
-
+#graph {
+	width: 960px;
+	height: 500px;
+	margin: 50px auto;
+}
 </style>
 <body>
+<div id="graph"></div>
+
 <script src="http://d3js.org/d3.v3.js"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" charset="utf-8"></script>
 
@@ -52,7 +59,7 @@ function maxValue(arr) {
 var margin = {top: 20, right: 80, bottom: 30, left: 50},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom,
-	padding = 30;
+	padding = 100;
 
 var parseDate = d3.time.format.utc("%H:%M:%S %p").parse;
 
@@ -77,7 +84,7 @@ var line = d3.svg.line()
     .x(function(d) { return x(d.date); })
     .y(function(d) { return y(d.tweets); });
 
-var svg = d3.select("body").append("svg")
+var svg = d3.select("#graph").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom);
 
@@ -87,8 +94,8 @@ var clip = svg.append("defs").append("svg:clipPath")
 		.attr("id", "clip-rect")
 		.attr("x", "0")
 		.attr("y", "0")
-		.attr("width", width)
-		.attr("height", height);
+		.attr("width", width - padding*2)
+		.attr("height", height - padding);
 
 var chartBody = svg.append("g")
 	.attr("clip-path", "url(#clip)")
@@ -99,6 +106,7 @@ var rect = chartBody.append('svg:rect')
 	.attr('width', width)
 	.attr('height', height)
 	.attr('fill', 'white');
+
 
 
 function draw(data, count) {
@@ -112,7 +120,7 @@ function draw(data, count) {
 	               			    0,
 	               			   LF.data.length
 	               			])
-	               			.range([-20, width]); // starting point is -5 so the first value doesn't show and slides off the edge as part of the transition
+	               			.range([-48, width]); // starting point is -5 so the first value doesn't show and slides off the edge as part of the transition
 	               			
  color.domain(d3.keys(data[0]).filter(function(key) { return key !== "date"; }));
 
@@ -129,6 +137,7 @@ function draw(data, count) {
       })
     };
   });
+	console.log(data);
 
   x.domain(d3.extent(data, function(d) { return d.date; }));
 
@@ -139,9 +148,6 @@ function draw(data, count) {
 
 	               			
 	if (count == 1) {
-			
-	 
-	
 		chartBody.append("g")
 	      .attr("class", "x axis")
 	      .attr("transform", "translate(0," + height + ")")
@@ -180,9 +186,9 @@ function draw(data, count) {
   
 ////////////
 // update with animation
-
+console.log(cities);
 //console.log(LF.x(1), data[0]);
-LF.y = d3.scale.linear().domain([ 0, maxValue(data)]).range([height,0]);
+LF.y = d3.scale.linear().domain([ 0, maxValue(data)]).range([height-padding,0]);
 LF.yAxis = d3.svg.axis()
     	.scale(LF.y)
 	    .orient("left")
@@ -206,25 +212,7 @@ LF.line = d3.svg.line()
 		return LF.y(d.tweets); 
 	})
 	.interpolate('monotone');
-	
-	/*
-	
-var line = d3.svg.line()
-    .interpolate("basis")
-    .x(function(d) { return x(d.date); })
-    .y(function(d) { return y(d.tweets); });
-*/
-	
-	//console.log('maxvalue',maxValue(data));
-	
-	/*  var cities = svg.selectAll(".city")
-	 	.data(data)
-	 	.selectAll('path.line')
-		 	//.data(data)
-		    .attr("d", function(d,i) { console.log(d);return LF.line(d.values); });
-			//.attr("d",LF.line);
-	 
-	 */
+
 	 chartBody.selectAll("path.line")
 		.data(cities) // set the new data
 		.attr("transform", "translate(" + LF.x(1) + ")") // set the transform to the right by x(1) pixels (6 for the scale we've set) to hide the new value
@@ -233,7 +221,7 @@ var line = d3.svg.line()
 
 		.transition() // start a transition to bring the new value into view
 			.ease("linear")
-			.duration(10000) // for this demo we want a continual slide so set this to the same as the setInterval amount below
+			.duration(30000) // for this demo we want a continual slide so set this to the same as the setInterval amount below
 			.attr("transform", "translate(" + LF.x(0) + ")"); // animate a slide to the left back to x(0) pixels to reveal the new value
 		
 			
@@ -274,10 +262,34 @@ var opts = {
 			}
 		}*/
 		
-		
+		initialFrom: "-2min",
+		initialUntil: "-30s",
+		subsequentFrom: "-30s",
+		subsequentUntil: "-20s",
+		interval: 30000,
+
 		// UAT
 		rules: {
-			"sn-1387579998541":{
+			
+			"sn-1389059793866": {
+				name: "#cold",
+				site: "303990",
+				articleId: "sn-1389059793866",
+				rule: "2"
+			},
+			"sn-1389060542588": {
+				name: "#snow",
+				site: "303990",
+				articleId: "sn-1389060542588",
+				rule: "2"
+			},
+			"sn-1389060642731": {
+				name: "#winter",
+				site: "303990",
+				articleId: "sn-1389060642731",
+				rule: "2"
+			}
+			/* "sn-1387579998541":{
 				name: "#nyc",
 				site: "303990",
 				articleId: "sn-1387579998541",
@@ -300,7 +312,7 @@ var opts = {
 				site: "303990",
 				articleId: "sn-1387580055525",
 				rule: "2"
-			}
+			} */
 		}
 };
 var trends = new lftrends(opts);

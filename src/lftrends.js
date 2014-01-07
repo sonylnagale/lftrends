@@ -91,7 +91,7 @@ lftrends.prototype._request = function() {
 	}
 	
 	if (until != null) {
-		url += delimeter + 'until' + until;
+		url += delimeter + 'until=' + until;
 	}
 		
 	$.ajax({
