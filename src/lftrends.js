@@ -184,49 +184,7 @@ lftrends.prototype._constructSeries = function(data) {
 //		redrawWithAnimation("#graph1", 1000, 500, "linear", true, this.opts.interval, this.opts.interval, data);
 //	}
 	draw(data, this.updateCount);
-	
-//	for (var i = 0; i < this.chart.series.length; ++i) {
-//		
-//		// ok, let's do even MORE stupid iterating *cries*
-//		// I'm starting to doubt my sanity
-//		for (var collection in data) {
-//			if (this.chart.series[i].name == data[collection].title) {
-//				var match = collection;
-//			} 
-//		}
-//		var datapoints = data[match]["2"]; // hardcode "2" for now
-//
-//		// this loop we actually need. we're going to toss out all the 0 datapoints
-//		var processedDataPoints = [];
-//		for (var j = 0; j < datapoints.length; ++j) {
-//			if (datapoints[j][0] != 0) {
-//				var point = {
-//					x: new Date(datapoints[j][1] * 1000), // take our unix timestamp and make a pretty date
-//					y: datapoints[j][0]
-//				};
-//				this.chart.series[i].addPoint(point, false, false);
-//				processedDataPoints.push(point);
-//			}
-//		}
-//
-//		// now, if there was no new data, let's just add a continuity line
-//		if (processedDataPoints.length == 0) {
-//			var currentseries = this.chart.series[i];
-//
-//			var point = {
-//				x: new Date(),
-//				y: currentseries.data[currentseries.data.length - 1].y,
-//				marker: {
-//					enabled: false
-//				}
-//			};
-//			currentseries.addPoint(point, false, false);
-//		}
-//	}
-//	
-//	// now, add the points. We hope.
-//	this.chart.redraw();
-//	this.updateCount++;
+
 };
 
 
@@ -237,51 +195,5 @@ lftrends.prototype._constructSeries = function(data) {
 lftrends.prototype._draw = function() {
 	this._constructResource();
 	this._request();
-//
-//	// this also seems like a bad idea
-//	var series = [];
-//	for (var i = 0; i < this.opts.rules.length; ++i) {
-//		var sery = { // yes I know sery isn't a word, hush.
-//			name: this.opts.rules[i].name,
-//			data: []
-//		};
-//		series.push(sery);
-//	}
-//	
-//	Highcharts.setOptions({
-//        global: {
-//            useUTC: false
-//        }
-//    });
-//	
-//	this.chart = new Highcharts.Chart({
-//        chart: {
-//            renderTo: this.opts.container,
-//            defaultSeriesType: 'spline',
-//            events: {
-//                load: this._request()
-//            },
-//            animation: {
-//            	duration: this.opts.interval,
-//            	easing: 'linear'
-//            }
-//        },
-//        title: {
-//            text: 'Data!'
-//        },
-//        xAxis: {
-//            type: 'datetime',
-//            tickPixelInterval: 150,
-//            maxZoom: 20 * 1000
-//        },
-//        yAxis: {
-//            minPadding: 0.2,
-//            maxPadding: 0.2,
-//            title: {
-//                text: 'Value',
-//                margin: 80
-//            }
-//        },
-//        series: series
-//    });        
+       
 };

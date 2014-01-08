@@ -22,7 +22,7 @@ body {
 .line {
   fill: none;
   stroke: steelblue;
-  stroke-width: 1.5px;
+  stroke-width: 3px;
 }
 #graph {
 	width: 960px;
@@ -31,6 +31,10 @@ body {
 }
 .legend {
 	cursor:pointer;
+}
+
+.legend text {
+	font-size: 14px;
 }
 </style>
 <body>
@@ -151,7 +155,7 @@ function draw(data, count) {
 
 	               			
 	if (count == 1) {
-		chartBody.append("g")
+		/* chartBody.append("g")
 	      .attr("class", "x axis")
 	      .attr("transform", "translate(0," + height + ")")
 	      .call(xAxis);
@@ -164,7 +168,7 @@ function draw(data, count) {
 	      .attr("y", 6)
 	      .attr("dy", ".71em")
 	      .style("text-anchor", "end")
-	      .text("Tweets");
+	      .text("Tweets"); */
 	
 		
 		// add legend   
@@ -182,7 +186,7 @@ function draw(data, count) {
 	      .enter()
 		      .append("circle")
 		      .attr('class','legend')
-			  .attr("cx", width - 65)
+			  .attr("cx", width - 105)
 		      .attr("cy", function(d, i){ return i *  20;})
 			  .attr("r", 5)
 			  .style("fill", function(d,i) { 
@@ -196,7 +200,7 @@ function draw(data, count) {
 	      .data(cities)
 	      .enter()
 		      .append("text")
-			  .attr("x", width - 52)
+			  .attr("x", width - 92)
 		      .attr("y", function(d, i){ return i *  20 + 4;})
 			  .text(function(d) {
 		        var text = d.name;
