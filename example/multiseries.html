@@ -5,7 +5,6 @@
 
 body {
   font: 10px sans-serif;
-  background-color:#eee;
 }
 
 .axis path,
@@ -83,7 +82,7 @@ var clip = svg.append("defs").append("svg:clipPath")
 	.append("svg:rect")
 		.attr("id", "clip-rect")
 		.attr("x", "-50px")
-		.attr("y", "0")
+		.attr("y", "25px")
 		.attr("width", width - padding)
 		.attr("height", height - padding);
 
@@ -170,7 +169,7 @@ var yAxis = d3.svg.axis()
   .scale(LF.y)
   .orient("left");
   
-  LF.y = d3.scale.linear().domain([ 0, maxValue(cities)]).range([height-padding,0]);
+  LF.y = d3.scale.linear().domain([ 0, maxValue(cities) + 10]).range([height-padding,0]);
   LF.yAxis = d3.svg.axis()
       	.scale(LF.y)
   	    .orient("left")
@@ -179,24 +178,26 @@ var yAxis = d3.svg.axis()
   		.tickFormat(d3.format("d"))
   	    .tickPadding(8);
 
-  chartBody.append("g")
-  .attr("class", "x axis")
-  .attr("transform", "translate(0," + height + ")")
-  .call(xAxis);
-
-chartBody.append("g")
-  .attr("class", "y axis")
-  .call(LF.yAxis)
-.append("text")
-  .attr("transform", "rotate(-90)")
-  .attr("y", 6)
-  .attr("x",-10)
-  .attr("dy", ".71em")
-  .style("text-anchor", "end")
-  .text("Tweets");
+  
          			
 	if (count == 1) {
 
+		chartBody.append("g")
+		  .attr("class", "x axis")
+		  .attr("transform", "translate(0,350)")
+		  .call(xAxis);
+
+		chartBody.append("g")
+		  .attr("class", "y axis")
+		  .call(LF.yAxis)
+		.append("text")
+		  .attr("transform", "rotate(-90)")
+		  .attr("y", 6)
+		  .attr("x",-30)
+		  .attr("dy", ".71em")
+		  .style("text-anchor", "end")
+		  .text("Tweets");
+		
 		var line = d3.svg.line()
 		    .interpolate("monotone")
 		    .x(function(d) { return x(d.date); })
@@ -298,6 +299,11 @@ graphBody.selectAll("path.line")
 		
 			
 			///////////////
+
+// update axes
+
+//x.domain([ parseDate(data[0].x), parseDate(newValDate)])
+chartBody.select('y axis').call(yAxis)
 //});
 };
 var opts = {
