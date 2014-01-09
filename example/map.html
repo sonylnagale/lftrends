@@ -49,6 +49,7 @@ body {
 	margin:10px !important;
 
 }
+
 </style>
 <body>
 <div id="graph"></div>
@@ -250,13 +251,16 @@ var yAxis = d3.svg.axis()
 				  return color(d.name);
 		      })
 			.on("click",function(el,i) {
-				console.log(el);
-				$.fancybox.open([
-						{
-						    href : 'trendingmap.html',
-						    title : "Here's where people are talking about "
-						}
-				]);
+				$.fancybox(
+					    {
+					    	type:'ajax',
+					        href          : 'trendingmap.php?subject=' + el.name,
+					        title			: "Where people are talking about " + el.name,
+					        autoSize    : false,
+					        width                 : 1000,
+					        height                : 500
+					    }
+					    );
 			});
 	      
 	    legend.selectAll('text')
@@ -265,6 +269,7 @@ var yAxis = d3.svg.axis()
 		      .append("text")
 			  .attr("x", width - 92)
 		      .attr("y", function(d, i){ return i *  20 + 4;})
+		      .attr('class','labeltext')
 			  .text(function(d) {
 		        var text = d.name;
 		        return text;
@@ -273,7 +278,7 @@ var yAxis = d3.svg.axis()
 				$.fancybox(
 					    {
 					    	type:'ajax',
-					        href          : 'trendingmap.html',
+					        href          : 'trendingmap.php?subject=' + el.name.replace("#",""),
 					        title			: "Where people are talking about " + el.name,
 					        autoSize    : false,
 					        width                 : 1000,
