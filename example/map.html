@@ -22,6 +22,7 @@ body {
   fill: none;
   stroke: steelblue;
   stroke-width: 3px;
+  cursor:pointer;
 }
 .tick {
 	stroke: #eee;
@@ -39,12 +40,42 @@ body {
 .legend text {
 	font-size: 14px;
 }
+
+.hub-modal {
+	z-index: 10000 !important;
+	width: 500px !important;
+	height: 500px !important;
+	overflow-y:scroll !important;
+	margin:10px !important;
+
+}
 </style>
 <body>
 <div id="graph"></div>
 
 <script src="http://d3js.org/d3.v3.js"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" charset="utf-8"></script>
+<!-- Add fancyBox -->
+<link rel="stylesheet" href="/fancybox/source/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+<script type="text/javascript" src="/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+<link rel="stylesheet" href="/fancybox/source/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
+<script type="text/javascript" src="/fancybox/source/helpers/jquery.fancybox-buttons.js?v=1.0.5"></script>
+<script type="text/javascript" src="/fancybox/source/helpers/jquery.fancybox-media.js?v=1.0.6"></script>
+
+<link rel="stylesheet" href="/fancybox/source/helpers/jquery.fancybox-thumbs.css?v=1.0.7" type="text/css" media="screen" />
+<script type="text/javascript" src="/fancybox/source/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+
+<!-- streamhub-map depends on streamhub-sdk. Ensure it's been included in your page. v 2.2.0-->
+<script src="http://livefyre-cdn.s3.amazonaws.com/libs/sdk/v2.5.1/builds/333/streamhub-sdk.min.js"></script>
+
+<!-- Include streamhub-map too. 0.2.6, updated 12/12/2013-->
+<script src="http://cdn.livefyre.com/libs/apps/cheung31/streamhub-map/v0.2.6-build.14/streamhub-map.min.js"></script>
+
+<!-- Optionally, include some reasonable default CSS rules for StreamHub Content. This stylesheet is provided by the StreamHub SDK. -->
+<link rel="stylesheet" href="http://cdn.livefyre.com/libs/sdk/v2.2.0/streamhub-sdk.min.css" /></link>
+
+
 
 <script src="../src/lftrends.js"></script>
 <script>
@@ -152,11 +183,10 @@ var color = d3.scale.category10();
  ]);	
 
   var newest = cities[0].values[cities[0].values.length-1].date;
-console.log(newest);
 
   var xAxis = d3.svg.axis()
   	.scale(x)
-	.tickFormat(function(d,i) { console.log(data.length,i);return -i + '0s';})
+	.tickFormat(function(d,i) { return -i + '0s';})
  .orient("bottom");
 
 var yAxis = d3.svg.axis()
@@ -219,9 +249,15 @@ var yAxis = d3.svg.axis()
 			  .style("fill", function(d,i) { 
 				  return color(d.name);
 		      })
-		  .on('click',function(d,i) {
-			  console.log('clicked', d, i);	
-		  });
+			.on("click",function(el,i) {
+				console.log(el);
+				$.fancybox.open([
+						{
+						    href : 'trendingmap.html',
+						    title : "Here's where people are talking about "
+						}
+				]);
+			});
 	      
 	    legend.selectAll('text')
 	      .data(cities)
@@ -233,9 +269,18 @@ var yAxis = d3.svg.axis()
 		        var text = d.name;
 		        return text;
 		      })
-		  .on('click',function(d,i) {
-			  console.log('clicked', d, i);	
-		  });
+		      .on("click",function(el,i) {
+				$.fancybox(
+					    {
+					    	type:'ajax',
+					        href          : 'trendingmap.html',
+					        title			: "Where people are talking about " + el.name,
+					        autoSize    : false,
+					        width                 : 1000,
+					        height                : 500
+					    }
+					    );
+			});
 		
 		
 	  var city = graphBody.selectAll(".city")
@@ -282,7 +327,7 @@ graphBody.selectAll("path.line")
 			.ease("linear")
 			.duration(30000) // for this demo we want a continual slide so set this to the same as the setInterval amount below
 			.attr("transform", "translate(" + LF.x(0) + ")"); // animate a slide to the left back to x(0) pixels to reveal the new value
-		
+
 			
 			///////////////
 
