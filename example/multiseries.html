@@ -142,15 +142,16 @@ var color = d3.scale.category10();
       })
     };
   });
-
+ 
+ 
  var x = d3.time.scale()
-	
- .range([0, width]);
-
-var y = d3.scale.linear()
+	.range([0, width])
+	.domain([12,0])
+ 	//.domain(d3.extent(data, function(d) { return new Date(new Date().getTime() - d.date.getTime()) ; }));
+	//.domain(d3.extent(data, function(d,i) { return d.date;  }));
+ var y = d3.scale.linear()
  .range([height, 0]);
 
-  x.domain(d3.extent(data, function(d) { return d.date; }));
 
   y.domain([
 /*     d3.min(cities, function(c) { return d3.min(c.values, function(v) { console.log('min',v.tweets);return v.tweets; }); }),
@@ -159,10 +160,13 @@ var y = d3.scale.linear()
  	0,
  	maxValue(cities)
  ]);	
-  
+
+  var newest = cities[0].values[cities[0].values.length-1].date;
+console.log(newest);
 
   var xAxis = d3.svg.axis()
-  .scale(x)
+  	.scale(x)
+	.tickFormat(function(d,i) { console.log(data.length,i);return -i + '0s';})
  .orient("bottom");
 
 var yAxis = d3.svg.axis()
@@ -182,10 +186,11 @@ var yAxis = d3.svg.axis()
          			
 	if (count == 1) {
 
-		chartBody.append("g")
+		var axis = chartBody.append("g")
 		  .attr("class", "x axis")
 		  .attr("transform", "translate(0,350)")
 		  .call(xAxis);
+
 
 		chartBody.append("g")
 		  .attr("class", "y axis")
@@ -256,12 +261,12 @@ var yAxis = d3.svg.axis()
 	      .style("stroke", function(d) { return color(d.name); });
 	
 	  
-	  city.append("text")
+	 /*  city.append("text")
 	      .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
 	      .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.tweets) + ")"; })
 	      .attr("x", 3)
 	      .attr("dy", ".35em")
-	      .text(function(d) { return d.name; });
+	      .text(function(d) { return d.name; }); */
 	} // if first run  
   
 ////////////
@@ -303,7 +308,21 @@ graphBody.selectAll("path.line")
 // update axes
 
 //x.domain([ parseDate(data[0].x), parseDate(newValDate)])
-chartBody.select('y axis').call(yAxis)
+chartBody.select('y axis').call(yAxis);
+/*  var x = d3.time.scale()
+	.range([0, width])
+ 	.domain(d3.extent(data, function(d) { return new Date(+d.date+30000); }));
+chartBody.select('x axis')
+	.transition()
+	.duration(30000)
+	.ease('linear')
+	.call(xAxis);
+
+ */
+/* x.domain([new Date(x.domain()[2]), new Date(x.domain()[x.domain().length] - 30000)]);
+    var t = svg.transition().duration(30000).ease('linear');
+    t.select(".x.axis").call(xAxis);
+ */
 //});
 };
 var opts = {
